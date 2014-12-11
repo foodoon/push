@@ -2,6 +2,7 @@ package guda.push.connect.protocol.codec;
 
 import com.alibaba.fastjson.JSONObject;
 import guda.push.connect.protocol.PushRequest;
+import guda.push.connect.protocol.api.ApiEnum;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -39,20 +40,17 @@ public class PushDecode extends LengthFieldBasedFrameDecoder {
         if (in instanceof EmptyByteBuf) {
             return null;
         } else {
-
+            decode(buff);
         }
     }
 
     private PushRequest decode(ByteBuf buff)  {
-        // 设置标识
-        buff.markReaderIndex();
-
         int length = buff.readInt();
+        short apiName = buff.readShort();
         PushRequest request = new PushRequest();
-        byte[] dataBytes = new byte[length];
-        buff.readBytes(dataBytes, 0, length);
-        JSONObject.parseObject(dataBytes,0,length);
+        byte[] dataBytes = new byte[length-2];
+        buff.readBytes(dataBytes, 0, length-2);
+        return JSONObject.parseObject(dataBytes, ApiEnum.getById(apiName));
 
-        return p;
     }
 }

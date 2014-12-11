@@ -5,33 +5,18 @@ package guda.push.connect.protocol;
  */
 public class PushRequest {
 
-    private String id;
+    private long seq;
 
-    private RequestHeader pushHeader;
+    private short apiVersion;
 
-    private Object body;
+    private String userAgent;
 
-    public String getId() {
-        return id;
-    }
+    private String clientIp;
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    private short cmd;
 
-    public RequestHeader getPushHeader() {
-        return pushHeader;
-    }
 
-    public void setPushHeader(RequestHeader pushHeader) {
-        this.pushHeader = pushHeader;
-    }
 
-    public Object getBody() {
-        return body;
-    }
 
-    public void setBody(Object body) {
-        this.body = body;
-    }
+
 }

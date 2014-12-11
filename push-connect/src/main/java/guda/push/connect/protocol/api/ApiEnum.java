@@ -5,13 +5,25 @@ package guda.push.connect.protocol.api;
  */
 public enum ApiEnum {
 
-    CHAT(100,Chat.class);
+    NOTICE((short)100,Notice.class),
+    CHAT((short)200,Chat.class),
+    ;
 
-    private int id;
+    private short id;
     private Class clz;
-    private ApiEnum(int id,Class clz){
+    private ApiEnum(short id,Class clz){
         this.id =  id;
         this.clz = clz;
+    }
+
+    public static Class getById(short id){
+        ApiEnum[] values = ApiEnum.values();
+        for(ApiEnum apiEnum:values){
+            if(apiEnum.id == id){
+                return apiEnum.clz;
+            }
+        }
+        return null;
     }
 
 }
