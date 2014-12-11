@@ -5,7 +5,7 @@ package guda.push.connect.protocol.codec.tlv;
  */
 public class TlvUtil {
 
-    public byte[] parseTag(int tagValue, int frameType, int dataType) {
+    public static byte[] tag2byte(int tagValue, int frameType, int dataType) {
         int size = 1;
         int rawTag = frameType | dataType | tagValue;
         if (tagValue < 0x1F) {
@@ -31,7 +31,7 @@ public class TlvUtil {
         return TypeConvert.int2byte(rawTag);
     }
 
-    public byte[] parseLength(int length) {
+    public static byte[] length2byte(int length) {
         if (length < 0) {
             throw new IllegalArgumentException();
         } else
