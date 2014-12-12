@@ -12,13 +12,20 @@ import org.slf4j.LoggerFactory;
 /**
  * Created by well on 2014/12/11.
  */
-public class UdpServer {
+public class UdpServer implements Runnable{
 
     private Logger log = LoggerFactory.getLogger(UdpServer.class);
 
     EventLoopGroup bossGroup = new NioEventLoopGroup();
 
+    private int port = 10085;
+
     public UdpServer(int port) {
+       this.port = port;
+    }
+
+    @Override
+    public void run() {
         try {
             Bootstrap b = new Bootstrap();
             b.group(bossGroup)

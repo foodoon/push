@@ -15,7 +15,6 @@ import java.util.concurrent.Executors;
 public class Server {
 
     public static void main(String[] args) {
-        UdpServer udpServer = new UdpServer(10085);
         Thread bizThread = new Thread(new BizThread());
         bizThread.setDaemon(true);
         bizThread.start();
@@ -27,7 +26,15 @@ public class Server {
         Thread udpRouterThread = new Thread(new UdpRouterThread());
         udpRouterThread.setDaemon(true);
         udpRouterThread.start();
+        Thread t = new Thread( new UdpServer(10085));
+        t.setDaemon(true);
+        t.start();
 
+        try {
+            Thread.sleep(3*1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
 
     }

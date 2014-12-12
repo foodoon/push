@@ -20,8 +20,10 @@ public class BizThread implements  Runnable{
     public void run() {
         while(true) {
             try {
-                TLV tlv = MsgFactory.takeUdpRoute();
+                log.info("staart biz:");
+                TLV tlv = MsgFactory.takeBiz();
                 if(tlv == null){
+                    log.info("take null");
                     Thread.sleep(1*1000);
                 }
                 int command = CodecUtil.findTagInt(tlv, Field.CMD);
@@ -29,10 +31,11 @@ public class BizThread implements  Runnable{
                 if(biz == null){
                     log.error("can not find biz process:command:" + command +"," + tlv.toString());
                 }
+                log.info("find biz:" + command +"," + tlv.toString());
                 biz.service(tlv);
 
             } catch (Exception e) {
-
+                log.error("",e);
             }
 
 

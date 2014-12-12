@@ -30,7 +30,11 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         ByteBuf content = packet.content();
         //from
         InetSocketAddress sender = packet.sender();
-        TLV tlv = new TLV(content.array());
+        int i = content.readableBytes();
+        byte[] d = new byte[i];
+        content.readBytes(d);
+
+        TLV tlv = new TLV(d);
         if (log.isInfoEnabled()) {
             log.info("udp recvive:" + tlv.toString());
         }

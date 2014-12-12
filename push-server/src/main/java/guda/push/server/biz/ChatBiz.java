@@ -9,12 +9,15 @@ import guda.push.connect.protocol.codec.tlv.TLV;
 import guda.push.connect.protocol.codec.tlv.TypeConvert;
 import guda.push.connect.udp.host.HostInfo;
 import guda.push.connect.udp.host.OnlineInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by foodoon on 2014/12/12.
  */
 public class ChatBiz implements Biz {
 
+    private Logger log = LoggerFactory.getLogger(ChatBiz.class);
     public static final int command = Command.CHAT;
 
     @Override
@@ -34,6 +37,9 @@ public class ChatBiz implements Biz {
         if(onlineInfo != null){
             tlv.add(new TLV(Field.TO_HOST, TypeConvert.string2byte(onlineInfo.getHost())));
             tlv.add(new TLV(Field.TO_PORT, TypeConvert.int2byte(onlineInfo.getPort())));
+        }
+        if(log.isInfoEnabled()){
+            log.info("add upd packet:" + tlv);
         }
         MsgFactory.addUdpRoute(tlv);
 
