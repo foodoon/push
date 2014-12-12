@@ -1,22 +1,18 @@
-package guda.push.connect.protocol.codec;
+package guda.push.connect.tcp.handle;
 
-import com.alibaba.fastjson.JSONObject;
-import guda.push.connect.protocol.PushRequest;
-import guda.push.connect.protocol.api.ApiEnum;
+import guda.push.connect.protocol.codec.tlv.TLV;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.EmptyByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
-import java.nio.charset.CharsetDecoder;
-
 /**
  * Created by well on 2014/12/11.
  */
-public class PushDecode extends LengthFieldBasedFrameDecoder {
+public class TcpDecoder extends LengthFieldBasedFrameDecoder {
 
 
-    public PushDecode(){
+    public TcpDecoder(){
         super(Integer.MAX_VALUE, 0, 4, -4, 0);
     }
 
@@ -27,6 +23,7 @@ public class PushDecode extends LengthFieldBasedFrameDecoder {
             in.markReaderIndex();
             int i = in.readInt();
             if(i==4) {
+                //心跳包
                 return null;
             }else{
                 in.resetReaderIndex();
@@ -40,17 +37,16 @@ public class PushDecode extends LengthFieldBasedFrameDecoder {
         if (in instanceof EmptyByteBuf) {
             return null;
         } else {
-            decode(buff);
+            return decode(buff);
         }
     }
 
-    private PushRequest decode(ByteBuf buff)  {
+    private TLV decode(ByteBuf buff)  {
         int length = buff.readInt();
-        short apiName = buff.readShort();
-        PushRequest request = new PushRequest();
-        byte[] dataBytes = new byte[length-2];
-        buff.readBytes(dataBytes, 0, length-2);
-        return JSONObject.parseObject(dataBytes, ApiEnum.getById(apiName));
+
+        byte[] dataBytes = new byte[length];
+        buff.readBytes(dataBytes, 0, length);
+        return new TLV(dataBytes);
 
     }
 }

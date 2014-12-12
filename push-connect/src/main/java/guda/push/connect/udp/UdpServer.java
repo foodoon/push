@@ -1,6 +1,6 @@
 package guda.push.connect.udp;
 
-import guda.push.connect.udp.handle.UdpHandle;
+import guda.push.connect.udp.handle.UdpHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
@@ -24,7 +24,7 @@ public class UdpServer {
             b.group(bossGroup)
                     .channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_BROADCAST, true)
-                    .handler(new UdpHandle());
+                    .handler(new UdpHandler());
 
             b.bind(port).sync().channel().closeFuture().await();
         } catch (InterruptedException e) {

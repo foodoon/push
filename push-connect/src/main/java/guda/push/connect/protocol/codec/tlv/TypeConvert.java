@@ -1,9 +1,14 @@
 package guda.push.connect.protocol.codec.tlv;
 
+
+import java.nio.charset.Charset;
+
 /**
  * Created by foodoon on 2014/12/11.
  */
 public class TypeConvert {
+
+    public static Charset charset = Charset.forName("UTF-8");
 
     public TypeConvert() {
     }
@@ -73,6 +78,12 @@ public class TypeConvert {
         b[7] = (byte) (int) n;
         return b;
     }
+    public static byte[] string2byte(String n) {
+        if(n == null){
+            return null;
+        }
+        return n.getBytes(charset);
+    }
 
     public static void long2byte(long n, byte buf[], int offset) {
         byte[] b = longToByte(n);
@@ -109,12 +120,7 @@ public class TypeConvert {
         return (short) (b[offset] & 0xff);
     }
 
-    public static String getHexString(byte[] src, int srcPos, int destPos, int length) {
-        byte[] tmp = new byte[length];
-        System.arraycopy(src, srcPos, tmp, destPos, length);
-        return (Hex.rhex(tmp));
 
-    }
 
     public static void main(String args[]) {
         byte[] a = long2byte(101001L);
