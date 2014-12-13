@@ -1,9 +1,7 @@
-package guda.push.connect.msg;
+package guda.push.connect.queue;
 
 import guda.push.connect.protocol.codec.tlv.TLV;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 

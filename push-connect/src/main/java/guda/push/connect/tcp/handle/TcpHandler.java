@@ -1,6 +1,6 @@
 package guda.push.connect.tcp.handle;
 
-import guda.push.connect.msg.MsgFactory;
+import guda.push.connect.queue.MsgFactory;
 import guda.push.connect.protocol.codec.tlv.TLV;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -25,6 +25,6 @@ public class TcpHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("",cause);
+        log.error("", cause);
     }
 }

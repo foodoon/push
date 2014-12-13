@@ -1,6 +1,6 @@
 package guda.push.server.biz;
 
-import guda.push.connect.msg.MsgFactory;
+import guda.push.connect.queue.MsgFactory;
 import guda.push.connect.protocol.api.Command;
 import guda.push.connect.protocol.api.Field;
 import guda.push.connect.protocol.api.Struct;
@@ -8,7 +8,7 @@ import guda.push.connect.protocol.codec.CodecUtil;
 import guda.push.connect.protocol.codec.tlv.TLV;
 import guda.push.connect.protocol.codec.tlv.TypeConvert;
 import guda.push.connect.udp.host.HostInfo;
-import guda.push.connect.udp.host.OnlineInfo;
+import guda.push.connect.queue.OnlineInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,7 +1,7 @@
 package guda.push.server.process;
 
-import guda.push.connect.msg.MsgFactory;
-import guda.push.connect.msg.WaitAckFactory;
+import guda.push.connect.queue.MsgFactory;
+import guda.push.connect.queue.WaitAckFactory;
 import guda.push.connect.protocol.api.Field;
 import guda.push.connect.protocol.codec.CodecUtil;
 import guda.push.connect.protocol.codec.tlv.TLV;
@@ -22,22 +22,31 @@ public class UdpRouterThread implements Runnable {
 
     @Override
     public void run() {
-
-        try {
-            TLV tlv = MsgFactory.takeUdpRoute();
-            DatagramSocket sendSocket = new DatagramSocket();
-            byte[] bytes = tlv.toBinary();
-            String host = CodecUtil.findTagString(tlv, Field.TO_HOST);
-            InetAddress inetAddress = InetAddress.getByName(host);
-            int port = CodecUtil.findTagInt(tlv, Field.TO_PORT);
-            DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, inetAddress,
-                    port);
-            sendSocket.send(sendPacket);
-            sendSocket.close();
-            long seq = CodecUtil.findTagLong(tlv,Field.SEQ);
-            WaitAckFactory.add(seq,tlv);
-        } catch (Exception e) {
-            log.error("", e);
+        while(true) {
+            try {
+                TLV tlv = MsgFactory.takeUdpRoute();
+                DatagramSocket sendSocket = new DatagramSocket();
+                byte[] bytes = tlv.toBinary();
+                String host = CodecUtil.findTagString(tlv, Field.TO_HOST);
+                InetAddress inetAddress = InetAddress.getByName(host);
+                int port = CodecUtil.findTagInt(tlv, Field.TO_PORT);
+                DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, inetAddress,
+                        port);
+                sendSocket.send(sendPacket);
+                sendSocket.close();
+                long seq = CodecUtil.findTagLong(tlv, Field.SEQ);
+                if(log.isDebugEnabled()){
+                    log.debug("add wait ack seq:" + seq + ",d:"+ tlv);
+                }
+                WaitAckFactory.add(seq, tlv);
+            } catch (Exception e) {
+                log.error("", e);
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
     }

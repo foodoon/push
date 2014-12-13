@@ -1,11 +1,11 @@
 package guda.push.connect.udp.handle;
 
-import guda.push.connect.msg.MsgFactory;
+import guda.push.connect.queue.MsgFactory;
 import guda.push.connect.protocol.api.Field;
 import guda.push.connect.protocol.codec.CodecUtil;
 import guda.push.connect.protocol.codec.tlv.TLV;
 import guda.push.connect.protocol.codec.tlv.TypeConvert;
-import guda.push.connect.udp.host.OnlineInfo;
+import guda.push.connect.queue.OnlineInfo;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

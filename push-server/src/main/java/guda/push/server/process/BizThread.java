@@ -1,6 +1,6 @@
 package guda.push.server.process;
 
-import guda.push.connect.msg.MsgFactory;
+import guda.push.connect.queue.MsgFactory;
 import guda.push.connect.protocol.api.Field;
 import guda.push.connect.protocol.codec.CodecUtil;
 import guda.push.connect.protocol.codec.tlv.TLV;
@@ -31,13 +31,17 @@ public class BizThread implements  Runnable{
                 if(biz == null){
                     log.error("can not find biz process:command:" + command +"," + tlv.toString());
                 }
-                log.info("find biz:" + command +"," + tlv.toString());
+                log.info("find biz:" + command + "," + tlv.toString());
                 biz.service(tlv);
 
             } catch (Exception e) {
                 log.error("",e);
             }
-
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
         }
     }

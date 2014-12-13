@@ -1,12 +1,12 @@
 package guda.push.server.process;
 
-import guda.push.connect.msg.WaitAckFactory;
+import guda.push.connect.queue.WaitAckFactory;
 import guda.push.connect.protocol.api.Field;
 import guda.push.connect.protocol.codec.CodecUtil;
 import guda.push.connect.protocol.codec.tlv.TLV;
 import guda.push.connect.protocol.codec.tlv.TypeConvert;
 import guda.push.connect.udp.host.HostInfo;
-import guda.push.connect.udp.host.OnlineInfo;
+import guda.push.connect.queue.OnlineInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +54,11 @@ public class UdpRetryThread implements Runnable{
                 WaitAckFactory.add(seq, tlv);
             } catch (Exception e) {
                 log.error("", e);
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
         }

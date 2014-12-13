@@ -1,6 +1,6 @@
 package guda.push.server.biz;
 
-import guda.push.connect.msg.WaitAckFactory;
+import guda.push.connect.queue.WaitAckFactory;
 import guda.push.connect.protocol.api.Command;
 import guda.push.connect.protocol.api.Field;
 import guda.push.connect.protocol.codec.CodecUtil;
