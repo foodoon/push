@@ -4,13 +4,14 @@ import guda.push.connect.udp.host.HostInfo;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by foodoon on 2014/12/12.
  */
 public class OnlineInfo {
 
-    private static Map<Long, HostInfo> online = new HashMap<Long, HostInfo>(1000);
+    private static ConcurrentHashMap<Long, HostInfo> online = new ConcurrentHashMap<Long, HostInfo>(1000);
 
     private static OpenBitSet onlineSet = new OpenBitSet(1000);
 

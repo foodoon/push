@@ -10,6 +10,7 @@ public class Command {
     public static final int S_LOGIN_OUT_SUCCESS = 1;
     //业务指令
     public static final int ACK = 100;
+    public static final int HEARBEAT = 101;
     public static final int CHAT = 200;
     public static final int NOTICE = 201;
 

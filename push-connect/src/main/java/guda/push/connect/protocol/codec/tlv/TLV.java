@@ -1,65 +1,44 @@
 package guda.push.connect.protocol.codec.tlv;
 
-import java.util.Hashtable;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by foodoon on 2014/12/12.
  */
 public class TLV {
 
-    private Tag     tag;                 // Tag of this TLV
-    private int     length;              // Length of this TLV's value
-    private byte[]  value;               // Value of this TLV
-    private TLV     parent;              // Parent of this TLV
-    private TLV     sibling;             // Next sibling of this TLV
-    private TLV     child;               // First child of this TLV
-    private TLV     lastChild;           // Last child of this TLV
+    private Tag tag;
+    private int length;
+    private byte[] value;
+    private TLV parent;
+    private TLV sibling;
+    private TLV child;
+    private TLV lastChild;
 
-    /** Create an empty TLV.
-     */
+
     public TLV() {
-        tag = new Tag(0, (byte) 0, false);  // This is a primitive TLV
-        length      = 0;
-        value       = null;
-        parent      = null;           // The new TLV has no parent,
-        sibling     = null;           // no sibling,
-        child       = null;           // no child
-        lastChild   = null;           // and no last child.
+        tag = new Tag(0, (byte) 0, false);
+        length = 0;
+        value = null;
+        parent = null;
+        sibling = null;
+        child = null;
+        lastChild = null;
     }
-    /** Create a <tt>TLV</tt> object from an ASN.1 BER encoded byte array.<p>
-     *
-     * @param binary
-     *        A byte array containing the binary representation of a TLV
-     *        structure, encoded conforming to the ASN.1 Basic Encoding
-     *        Rules defined in ISO 8825.
-     */
+
     public TLV(byte[] binary) {
         int[] offset = {0};
-        tag = new Tag(0, (byte) 0, false); // This is a primitive TLV
-        length      = 0;
-        value       = null;
-        parent      = null;                // The new TLV has no parent,
-        sibling     = null;                // no sibling,
-        child       = null;                // no child
-        lastChild   = null;                // and no last child.
+        tag = new Tag(0, (byte) 0, false);
+        length = 0;
+        value = null;
+        parent = null;
+        sibling = null;
+        child = null;
+        lastChild = null;
         fromBinary(binary, offset, this, null);
     }
-    /** Create a TLV object from the given <tt>Tag</tt> object and
-     * data.<p>
-     *
-     * If the given <tt>Tag</tt> object has the constructed bit set,
-     * the result will be a TLV tree, otherwise it's just a
-     * primitive TLV that contains the data given in value field.<p>
-     *
-     * @param tag
-     *        An instance of class <tt>Tag</tt> representing the tag
-     *        field of the TLV to be created.
-     * @param value
-     *        An array of bytes representing the Value field of the TLV
-     *        to be created.
-     */
-    public TLV(Tag tag, byte[] value)
-    {
+
+    public TLV(Tag tag, byte[] value) {
         int[] offset = {0};
         TLV newTLV = new TLV();
 
@@ -67,96 +46,73 @@ public class TLV {
         if (this.tag.isConstructed()) {
             while (offset[0] < value.length)
                 fromBinary(value, offset, newTLV, this);
-        }
-        else {
+        } else {
             if (value != null)
-                this.length    = value.length;
+                this.length = value.length;
             else
-                this.length    = 0;
-            this.value       = value;
-            this.child       = null;         // no child and
-            this.lastChild   = null;         // no last child.
+                this.length = 0;
+            this.value = value;
+            this.child = null;
+            this.lastChild = null;
         }
-        this.parent      = null;           // The new TLV has no parent,
-        this.sibling     = null;           // no sibling,
+        this.parent = null;
+        this.sibling = null;
     }
-    /** Create a primitive TLV object from a given tag and positive integer.<p>
-     *
-     * @param tag
-     *        An instance of class <tt>Tag</tt> representing the tag
-     *        field of the TLV to be created.
-     * @param number
-     *        An integer representing the Value field of the TLV
-     *        to be created.
-     */
+
     public TLV(Tag tag, int number) {
         int i = 0;
-
         this.tag = new Tag(tag);
+        if (number < 0x100) {
+            value = new byte[1];
+        } else if (number < 0x10000) {
+            value = new byte[2];
+        } else if (number < 0x1000000) {
+            value = new byte[3];
+        } else {
+            value = new byte[4];
+        }
 
-        // Find out how many bytes we need.
-        if      (number < 0x100)     value = new byte[1];
-        else if (number < 0x10000)   value = new byte[2];
-        else if (number < 0x1000000) value = new byte[3];
-        else                         value = new byte[4];
-
-        // Do conversion
-        for (i = value.length-1; i >= 0; i--) {
+        for (i = value.length - 1; i >= 0; i--) {
             value[i] = (byte) (number % 0x100);
             number /= 0x100;
         }
 
-        this.length      = value.length;
-        this.child       = null;         // no child and
-        this.lastChild   = null;         // no last child.
-        this.parent      = null;         // The new TLV has no parent,
-        this.sibling     = null;         // no sibling,
+        this.length = value.length;
+        this.child = null;
+        this.lastChild = null;
+        this.parent = null;
+        this.sibling = null;
     }
-    /** Create a constructed TLV object from the given <tt>Tag</tt> object
-     * and <tt>TLV</tt> object to be contained.
-     *
-     * @param tag
-     *        An instance of class <tt>Tag</tt> representing the tag
-     *        field of the TLV to be created.
-     * @param tlv
-     *        An instance of class <tt>TLV</tt> representing the Value
-     *        field of the TLV to be created.
-     */
+
     public TLV(Tag tag, TLV tlv) {
-        this.tag         = new Tag(tag);
-        this.tag.setConstructed(true);     // This is a constructed TLV
-        this.value       = null;           // therefore it has no direct value
-        this.parent      = null;           // The new TLV has no parent.
-        this.sibling     = null;           // The new TLV has no sibling.
-        this.child       = tlv;            // TLV becomes child
-        this.lastChild   = tlv;            // and last child (even if it's null).
+        this.tag = new Tag(tag);
+        this.tag.setConstructed(true);
+        this.value = null;
+        this.parent = null;
+        this.sibling = null;
+        this.child = tlv;
+        this.lastChild = tlv;
 
         if (tlv != null)
-            this.length=tlv.tag.size()+tlv.lenBytes()+tlv.length;
+            this.length = tlv.tag.size() + tlv.lenBytes() + tlv.length;
         else
-            this.length=0;            // empty TLV has length 0.
+            this.length = 0;
     }
-    /** Add the given <tt>TLV</tt> object to this <tt>TLV</tt> instance
-     * (only if constructed).<p>
-     *
-     * @param tlv
-     *        The <tt>TLV</tt> object to be concatenated to this
-     *        <tt>TLV</tt> instance.
-     */
+
     public TLV add(TLV tlv) {
         TLV iterTLV;
-        int originalReprLength=0;
-        int deltaReprLength= 0;
+        int originalReprLength = 0;
+        int deltaReprLength = 0;
 
         if (tag.isConstructed() == true) {
-            tlv.parent        = this;        // make this the parent of added tlv
-            tlv.sibling       = null;        // last child has no sibling
-            if (lastChild != null)           // if there already has been a child,
-                lastChild.sibling = tlv;       // it gets tlv as a new sibling
-            lastChild         = tlv;         // tlv becomes last child
+            tlv.parent = this;
+            tlv.sibling = null;
+            if (lastChild != null) {
+                lastChild.sibling = tlv;
+            }
+            lastChild = tlv;
 
-            // update length of this TLV and all it's ancestors
-            iterTLV           = this;
+            iterTLV = this;
             while (iterTLV != null) {
                 originalReprLength = iterTLV.lenBytes();
                 iterTLV.length += tlv.length + tlv.tag.size() + tlv.lenBytes() + deltaReprLength;
@@ -164,33 +120,21 @@ public class TLV {
                 iterTLV = iterTLV.parent;
             }
             return this;
-        }
-        else {
+        } else {
             return null;
         }
     }
-    /** Search for a given tag value and return the first TLV found.<p>
-     *
-     * @param tag
-     *        The <tt>Tag</tt> object representing the tag to be searched for,
-     *        <tt>null</tt> for any tag.
-     * @param cursor
-     *        A reference to a <tt>TLV</tt> object where the search should start;
-     *        if <tt>null</tt>, the search is started with the child of this
-     *        <tt>TLV</tt> instance.
-     * @return The first <tt>TLV</tt> object found, which has the given tag value;
-     *         <tt>null</tt> if no match is found.
-     */
+
     public TLV findTag(Tag tag, TLV cursor) {
         TLV iterTLV;
 
         if (cursor == null)
-            iterTLV = child;                 // start with the first child
+            iterTLV = child;
         else
-            iterTLV = cursor.sibling;        // start with cursor's successor
+            iterTLV = cursor.sibling;
 
         if (tag == null)
-            return iterTLV;                  // null is wildcard
+            return iterTLV;
 
         while (iterTLV != null) {
             if (iterTLV.tag.equals(tag))
@@ -199,45 +143,26 @@ public class TLV {
         }
         return null;
     }
-    /** Read a <tt>TLV</tt> object from a binary representation.<p>
-     *
-     * @param binary
-     *        A byte array containing the binary representation of a TLV
-     *        structure, encoded conforming to the ASN.1 Basic Encoding
-     *        Rules defined in ISO 8825.
-     *
-     * @param offset
-     *        An integer value giving the offset, where the binary
-     *        representation starts.
-     * @param tlv
-     *        The <tt>TLV</tt> object to be read from the binary representation.
-     * @param parent
-     *        The <tt>TLV</tt> object representing the parent of the object to be read.
-     * @return An integer value giving the offset of the end of the binary
-     *         representation read into the TLV object.
-     */
-    public static void fromBinary(byte[] binary, int[] offset, TLV tlv, TLV parent) {
-        int i= 0;
-        int oldOffset=offset[0];
-        TLV iterTLV=null;
 
-        // Get the Tag from binary representation.
+    public static void fromBinary(byte[] binary, int[] offset, TLV tlv, TLV parent) {
+        int i = 0;
+        int oldOffset = offset[0];
+        TLV iterTLV = null;
+
         tlv.tag.fromBinary(binary, offset);
-        // Get the length from binary representation.
+
         tlv.length = 0;
 
 
-        if ((binary[offset[0]] & (byte) 0x80) == (byte) 0x00)
-        {
-            tlv.length+=(int) binary[offset[0]];
-        }
-        else {
+        if ((binary[offset[0]] & (byte) 0x80) == (byte) 0x00) {
+            tlv.length += (int) binary[offset[0]];
+        } else {
             int numBytes = (binary[offset[0]] & (byte) 0x7F);
-            int j=0;
+            int j = 0;
             while (numBytes > 0) {
                 offset[0]++;
-                j=binary[offset[0]];
-                tlv.length += ( j<0 ? j+=256 : j);
+                j = binary[offset[0]];
+                tlv.length += (j < 0 ? j += 256 : j);
 
                 if (numBytes > 1) tlv.length *= 256;
                 numBytes--;
@@ -246,8 +171,8 @@ public class TLV {
         offset[0]++;
 
         if (tlv.tag.isConstructed()) {
-            tlv.value   = null;
-            tlv.child   = new TLV();
+            tlv.value = null;
+            tlv.child = new TLV();
             fromBinary(binary, offset, tlv.child, tlv);
 
             iterTLV = tlv.child;
@@ -257,72 +182,48 @@ public class TLV {
                 iterTLV = iterTLV.sibling;
             }
             tlv.lastChild = iterTLV;
-        }
-        else {
-            tlv.child   = null;
+        } else {
+            tlv.child = null;
             tlv.sibling = null;            // The new TLV has no sibling.
-            tlv.value   = new byte[tlv.length];
+            tlv.value = new byte[tlv.length];
             System.arraycopy(binary, offset[0], tlv.value, 0, tlv.length);
             offset[0] += tlv.length;
         }
         tlv.parent = parent;
     }
-    /**
-     * Return the number of bytes required for the coding of the length of
-     * this TLV as described in the ASN.1 Basic Encoding Rules.<p>
-     *
-     * @return An integer value giving the number of bytes.
-     */
+
     private int lenBytes() {
-        if      (length < 0x80)        return 1;
-        else if (length < 0x100)       return 2;
-        else if (length < 0x10000)     return 3;
-        else if (length < 0x1000000)   return 4;
-        else                           return 5;
+        if (length < 0x80) return 1;
+        else if (length < 0x100) return 2;
+        else if (length < 0x10000) return 3;
+        else if (length < 0x1000000) return 4;
+        else return 5;
     }
-    /** Return the number of bytes required for coding the passed integer
-     * value as described in the ASN.1 Basic Encoding Rules.<p>
-     *
-     * @param length
-     *        An integer value.
-     * @return An integer value giving the number of bytes.
-     */
+
     public static int lenBytes(int length) {
-        if      (length < 0x80)        return 1;
-        else if (length < 0x100)       return 2;
-        else if (length < 0x10000)     return 3;
-        else if (length < 0x1000000)   return 4;
-        else                           return 5;
+        if (length < 0x80) return 1;
+        else if (length < 0x100) return 2;
+        else if (length < 0x10000) return 3;
+        else if (length < 0x1000000) return 4;
+        else return 5;
     }
-    /** Get the length of this TLV's value field in bytes.<p>
-     *
-     * @return An integer giving the length.
-     */
+
     public int length() {
         return length;
     }
-    /** BER-code the length of this TLV.<p>
-     *
-     * @param binary
-     *        The byte array to which the BER-coded length field shall be added.
-     * @param offset
-     *        The offset, where the BER-coded length field shall be added.
-     */
+
     public static byte[] lengthToBinary(int length) {
         byte[] binary = new byte[lenBytes(length)];
         if (length < 0x80) {
             binary[0] = (byte) length;
-        }
-        else if (length < 0x100) {
+        } else if (length < 0x100) {
             binary[0] = (byte) 0x81;
             binary[1] = (byte) length;
-        }
-        else if (length < 0x10000) {
+        } else if (length < 0x10000) {
             binary[0] = (byte) 0x82;
             binary[1] = (byte) (length / 0x100);
             binary[2] = (byte) (length % 0x100);
-        }
-        else if (length < 0x1000000) {
+        } else if (length < 0x1000000) {
             binary[0] = (byte) 0x83;
             binary[1] = (byte) (length / 0x10000);
             binary[2] = (byte) (length / 0x100);
@@ -330,12 +231,8 @@ public class TLV {
         }
         return binary;
     }
-    /** Set the value field of this TLV from the byte array.<p>
-     *
-     * @param newValue
-     *        The byte array for the value field.
-     */
-    public void setValue(byte [] newValue) {
+
+    public void setValue(byte[] newValue) {
         int originalReprLength = 0;
         int deltaReprLength = 0;
 
@@ -350,27 +247,20 @@ public class TLV {
 
         deltaReprLength = this.lenBytes() - originalReprLength;
 
-        // update length of this TLV and all it's ancestors
         TLV iterTLV = this.parent;
         while (iterTLV != null) {
             originalReprLength = iterTLV.lenBytes();
-            iterTLV.length += (length - oldLength) + deltaReprLength;;
+            iterTLV.length += (length - oldLength) + deltaReprLength;
+            ;
             deltaReprLength += iterTLV.lenBytes() - originalReprLength;
             iterTLV = iterTLV.parent;
         }
     }
-    /** Get the tag of this TLV.<p>
-     *
-     * @return The <tt>Tag</tt> object of this <tt>TLV</tt> object.
-     */
+
     public Tag tag() {
         return tag;
     }
-    /** BER-code this TLV.<p>
-     *
-     * @return A byte array containing the BER-coded representation of this
-     *         <tt>TLV</tt> instance.
-     */
+
     public byte[] toBinary() {
         int[] offset = {0};
         int totalLength = tag.size() + lenBytes() + length;
@@ -378,11 +268,7 @@ public class TLV {
         this.toBinaryHelper(binary, offset, totalLength);
         return binary;
     }
-    /** BER-code this TLV's value field.<p>
-     *
-     * @return A byte array containing the BER-coded binary representation
-     *          of the value field of this <tt>TLV</tt> instance.
-     */
+
     public byte[] toBinaryContent() {
         int[] offset = {0};
         int totalLength = length;
@@ -390,17 +276,7 @@ public class TLV {
         this.toBinaryHelperContent(binary, offset, totalLength);
         return binary;
     }
-    /** Convert this TLV to it's BER-coded representation.<p>
-     *
-     * @param binary
-     *        The byte array to which the BER-coded representation shall
-     *        be written.
-     * @param offset
-     *        An integer giving the offset into the byte array, from
-     *        where the binary representation shall start.
-     * @param max
-     *        An integer giving the index of the last valid byte.
-     */
+
     private void toBinaryHelper(byte[] binary, int[] offset, int max) {
         int i = 0;
 
@@ -413,23 +289,12 @@ public class TLV {
             offset[0] += value.length;
         }
 
-        // We must check if offset is less than max, because when the TLV that is converted
-        // to binary has siblings, we would run into trouble (array out of bounds)
+
         if (sibling != null && offset[0] < max) {
             sibling.toBinaryHelper(binary, offset, max);
         }
     }
-    /** Convert this TLV's value field to it's BER-coded representation.<p>
-     *
-     * @param binary
-     *        The byte array to which the BER-coded representation of this
-     *        <tt>TLV</tt> instance shall be written.
-     * @param offset
-     *        An integer giving the offset into the byte array, from where the
-     *        BER-coded representation shall start.
-     * @param max
-     *        An integer giving the index of the last valid byte.
-     */
+
     private void toBinaryHelperContent(byte[] binary, int[] offset, int max) {
         int i = 0;
 
@@ -442,31 +307,21 @@ public class TLV {
             }
         }
     }
-    /** Convert the length of this TLV to it's binary representation
-     * according to the ASN.1 Basic Encoding Rules defined in ISO 8825.<p>
-     *
-     * @param binary
-     *        The byte array to which the BER-coded length field shall be added.
-     * @param offset
-     *        The offset, where the BER-coded length field shall be added.
-     */
+
     private void toBinaryLength(byte[] binary, int[] offset) {
         if (length < 0x80) {
             binary[offset[0]] = (byte) length;
-        }
-        else if (length < 0x100) {
+        } else if (length < 0x100) {
             binary[offset[0]] = (byte) 0x81;
             offset[0]++;
             binary[offset[0]] = (byte) length;
-        }
-        else if (length < 0x10000) {
+        } else if (length < 0x10000) {
             binary[offset[0]] = (byte) 0x82;
             offset[0]++;
             binary[offset[0]] = (byte) (length / 0x100);
             offset[0]++;
             binary[offset[0]] = (byte) (length % 0x100);
-        }
-        else if (length < 0x1000000) {
+        } else if (length < 0x1000000) {
             binary[offset[0]] = (byte) 0x83;
             offset[0]++;
             binary[offset[0]] = (byte) (length / 0x10000);
@@ -477,98 +332,84 @@ public class TLV {
         }
         offset[0]++;
     }
-    /** Convert a TLV to a string.<p>
-     * @return A <tt>String</tt> object representing this <tt>TLV</tt> object.
-     */
+
     public String toString() {
         return toString(null, 0);
     }
-    /** Convert a TLV to a string.<p>
-     *
-     * @param ht
-     *        A <tt>Hashtable</tt> object mapping <tt>Tag</tt> objects to
-     *        <String> objects.
-     * @param level
-     *        An integer value giving the indention leve to be used.
-     * @return A <tt>String</tt> object representing this <tt>TLV</tt> object.
-     */
-    public String toString(Hashtable ht, int level) {
-        String s = new String("");
+
+    public String toString(ConcurrentHashMap ht, int level) {
+        StringBuilder s = new StringBuilder();
         int i = 0;
-        for (i=0; i<level; i++)
-            s = s + " ";
-
-        if (ht == null)
-            s = s + "["+tag+" "+length+"] ";
-        else
-            s = s + ht.get(tag) + " ";
+        for (i = 0; i < level; i++) {
+            s.append(" ");
+        }
+        if (ht == null) {
+            s.append("[").append(tag).append(" ").append(length).append("] ");
+        }else {
+            s.append( ht.get(tag)).append( " ");
+        }
+        if (tag.isConstructed()) {
+            s.append( "\n");
+            for (i = 0; i < level; i++)
+                s.append( " ");
+        }
+        s.append( "( ");
 
         if (tag.isConstructed()) {
-            s = s + "\n";
-            for (i=0; i<level; i++)
-                s = s + " ";
-        }
-        s = s + "( ";
-
-        if (tag.isConstructed()) {
-            s = s + "\n";
-            s = s + child.toString(ht, level+2);
-            for (i=0; i<level; i++)  s = s + " ";
-            s = s + ")\n";
-        }
-        else {
+            s.append( "\n");
+            s.append( child.toString(ht, level + 2));
+            for (i = 0; i < level; i++) {
+                s.append(" ");
+            }
+            s.append(")\n");
+        } else {
             boolean fPrintable = true;
             if (value != null) {
                 for (i = 0; i < value.length; i++)
                     if (value[i] < 32) fPrintable = false;
                 if (fPrintable)
-                    s = s + "\""+new String(value)+"\"";
+                    s.append("\"") .append(new String(value)).append( "\"");
                 else {
-                    s = s + "'";
-                    for (i = 0; i < value.length; i++)
-                        s = s + HexString.hexify(value[i]);
-                    s = s + "'";
+                    s.append( "'");
+                    for (i = 0; i < value.length; i++) {
+                        s.append(HexString.hexify(value[i]));
+                    }
+                    s.append("'");
                 }
             }
-            s = s + " )\n";
+            s.append(" )\n");
         }
 
-        if (sibling != null)
-            s = s + sibling.toString(ht, level);
-        return s;
+        if (sibling != null) {
+            s.append(sibling.toString(ht, level));
+        }
+        return s.toString();
     }
-    /** Get the value field of this TLV as a byte array.<p>
-     *
-     * @return A byte array representing the value field of this
-     *         <tt>TLV</tt> instance; <tt>null</tt> if the TLV is constructed.
-     */
+
     public byte[] valueAsByteArray() {
         return value;
     }
-    /** Get the value of this TLV as a positive integer number.<p>
-     *
-     * @return An integer representing the value (unsigned int) of this
-     *         <tt>TLV</tt> instance's value field.
-     */
+
     public int valueAsInt() {
-        int i=0;
-        int j=0;
+        int i = 0;
+        int j = 0;
         int number = 0;
 
         for (i = 0; i < value.length; i++) {
-            j=value[i];
-            number = number * 256 + ( j<0 ? j+=256 : j);
+            j = value[i];
+            number = number * 256 + (j < 0 ? j += 256 : j);
         }
         return number;
     }
+
     public long valueAsLong() {
-        int i=0;
-        int j=0;
+        int i = 0;
+        int j = 0;
         long number = 0;
 
         for (i = 0; i < value.length; i++) {
-            j=value[i];
-            number = number * 256 + ( j<0 ? j+=256 : j);
+            j = value[i];
+            number = number * 256 + (j < 0 ? j += 256 : j);
         }
         return number;
     }

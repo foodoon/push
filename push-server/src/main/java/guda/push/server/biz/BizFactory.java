@@ -20,5 +20,6 @@ public class BizFactory {
     static{
         biz.put(Command.ACK,new AckBiz());
         biz.put(Command.CHAT,new ChatBiz());
+        biz.put(Command.HEARBEAT,new HearbeatBiz());
     }
 }
