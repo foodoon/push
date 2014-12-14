@@ -13,27 +13,29 @@ public class WaitAckFactory {
 
     private static final int MAX_SIZE = 5000;
 
-    static final ConcurrentHashMap<Long, TLV> waitMap = new ConcurrentHashMap<Long, TLV>(
+    static final ConcurrentHashMap<Long, AckTLV> waitMap = new ConcurrentHashMap<Long, AckTLV>(
             MAX_SIZE);
-    static final BlockingQueue<TLV> waitList = new ArrayBlockingQueue<TLV>(MAX_SIZE);
+    static final BlockingQueue<AckTLV> waitList = new ArrayBlockingQueue<AckTLV>(MAX_SIZE);
+
 
     public static  void add(Long seq,TLV tlv){
-        waitList.add(tlv);
-        waitMap.put(seq,tlv);
+        AckTLV ackTLV = new AckTLV(tlv);
+        waitList.add(ackTLV);
+        waitMap.put(seq,ackTLV);
     }
 
     public static  void remove(Long seq) {
-        TLV tlv = waitMap.get(seq);
+        AckTLV tlv = waitMap.get(seq);
         if(tlv == null){
             return ;
         }
         waitList.remove(tlv);
     }
 
-    public static  TLV take() {
+    public static  AckTLV poll() {
         try {
-            return waitList.take();
-        } catch (InterruptedException e) {
+            return waitList.poll();
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;

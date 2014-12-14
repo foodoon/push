@@ -1,5 +1,6 @@
 package guda.push.server.process;
 
+import guda.push.connect.queue.AckTLV;
 import guda.push.connect.queue.WaitAckFactory;
 import guda.push.connect.protocol.api.Field;
 import guda.push.connect.protocol.codec.CodecUtil;
@@ -19,12 +20,27 @@ import java.net.InetAddress;
  */
 public class UdpRetryThread implements Runnable{
     private Logger log = LoggerFactory.getLogger(UdpRetryThread.class);
+    private volatile  boolean started = true;
+
+    public UdpRetryThread(){
+        Thread udpRetryThread = new Thread(this);
+        udpRetryThread.setDaemon(true);
+        udpRetryThread.start();
+    }
+    public void stop(){
+        started = false;
+    }
     @Override
     public void run() {
-        while(true) {
+        while(started) {
             try {
-                TLV tlv = WaitAckFactory.take();
-                if (tlv == null) {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            try {
+                AckTLV ackTLV = WaitAckFactory.poll();
+                if (ackTLV == null) {
                     try {
                         Thread.sleep(1 * 1000);
                     } catch (InterruptedException e) {
@@ -32,34 +48,41 @@ public class UdpRetryThread implements Runnable{
                     }
                 }
                 //reset online info
-                long toUser = CodecUtil.findTagLong(tlv, Field.TO_USER);
+                if(!ackTLV.needRetry()){
+                    long seq = CodecUtil.findTagLong(ackTLV.getTlv(),Field.SEQ);
+                    WaitAckFactory.add(seq,ackTLV.getTlv());
+                    continue;
+                }
+                long toUser = CodecUtil.findTagLong(ackTLV.getTlv(), Field.TO_USER);
                 HostInfo onlineInfo = OnlineInfo.findOnlineInfo(toUser);
                 if (onlineInfo == null) {
-                    return;
+                    long seq = CodecUtil.findTagLong(ackTLV.getTlv(),Field.SEQ);
+                    WaitAckFactory.add(seq,ackTLV.getTlv());
+                    continue;
                 }
-                TLV tagPort = CodecUtil.findTag(tlv, Field.TO_PORT);
-                TLV tagHost = CodecUtil.findTag(tlv, Field.TO_HOST);
+
+                if(log.isDebugEnabled()){
+                    log.debug("retry:" + ackTLV.getTlv() + ",to host:" + onlineInfo.getHost() + ",port:" + onlineInfo.getPort());
+                }
+                TLV tagPort = CodecUtil.findTag(ackTLV.getTlv(), Field.TO_PORT);
+                TLV tagHost = CodecUtil.findTag(ackTLV.getTlv(), Field.TO_HOST);
                 tagHost.setValue(TypeConvert.string2byte(onlineInfo.getHost()));
                 tagPort.setValue(TypeConvert.int2byte(onlineInfo.getPort()));
                 //
                 DatagramSocket sendSocket = new DatagramSocket();
-                byte[] bytes = tlv.toBinary();
+                byte[] bytes = ackTLV.getTlv().toBinary();
 
                 InetAddress inetAddress = InetAddress.getByName(onlineInfo.getHost());
                 DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, inetAddress,
                         onlineInfo.getPort());
                 sendSocket.send(sendPacket);
                 sendSocket.close();
-                long seq = CodecUtil.findTagLong(tlv, Field.SEQ);
-                WaitAckFactory.add(seq, tlv);
+                long seq = CodecUtil.findTagLong(ackTLV.getTlv(),Field.SEQ);
+                WaitAckFactory.add(seq,ackTLV.getTlv());
             } catch (Exception e) {
                 log.error("", e);
             }
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+
 
         }
     }

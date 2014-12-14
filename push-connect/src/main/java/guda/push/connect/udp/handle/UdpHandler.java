@@ -1,5 +1,6 @@
 package guda.push.connect.udp.handle;
 
+import guda.push.connect.protocol.api.Command;
 import guda.push.connect.queue.MsgFactory;
 import guda.push.connect.protocol.api.Field;
 import guda.push.connect.protocol.codec.CodecUtil;
@@ -31,6 +32,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         //from
         InetSocketAddress sender = packet.sender();
         int i = content.readableBytes();
+
         byte[] d = new byte[i];
         content.readBytes(d);
 
@@ -39,11 +41,14 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             log.info("udp recvive:" + tlv.toString());
         }
         long userId = CodecUtil.findTagLong(tlv, Field.FROM_USER);
-        OnlineInfo.online(userId,sender.getHostName(),sender.getPort());
+        OnlineInfo.online(userId,sender.getHostName(),10085);
         tlv.add(new TLV(Field.FROM_HOST, TypeConvert.string2byte(sender.getHostName())));
-        tlv.add(new TLV(Field.FROM_PORT, TypeConvert.int2byte(sender.getPort())));
+        tlv.add(new TLV(Field.FROM_PORT, TypeConvert.int2byte(10085)));
         MsgFactory.addBiz(tlv);
-        ack(CodecUtil.newACK(tlv));
+        int cmd = CodecUtil.findTagInt(tlv,Field.CMD);
+        if(cmd!= Command.ACK && cmd!=Command.HEARBEAT) {
+            ack(CodecUtil.newACK(tlv));
+        }
 
     }
 

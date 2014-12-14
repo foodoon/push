@@ -23,7 +23,7 @@ public class UdpClient {
 
 
     public UdpClient() throws Exception {
-        ds = new DatagramSocket();
+        ds = new DatagramSocket(10086);
     }
 
 

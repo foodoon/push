@@ -20,9 +20,14 @@ public class UdpRouterThread implements Runnable {
 
     private Logger log = LoggerFactory.getLogger(UdpRouterThread.class);
 
+    private volatile  boolean started = true;
+
+    public void stop(){
+        started = false;
+    }
     @Override
     public void run() {
-        while(true) {
+        while(started) {
             try {
                 TLV tlv = MsgFactory.takeUdpRoute();
                 DatagramSocket sendSocket = new DatagramSocket();

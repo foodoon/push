@@ -19,9 +19,7 @@ public class Server {
         bizThread.setDaemon(true);
         bizThread.start();
 
-        Thread udpRetryThread = new Thread(new UdpRetryThread());
-        udpRetryThread.setDaemon(true);
-        udpRetryThread.start();
+
 
         Thread udpRouterThread = new Thread(new UdpRouterThread());
         udpRouterThread.setDaemon(true);

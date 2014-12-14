@@ -179,4 +179,8 @@ public class HexString {
         result[0] = (byte)0; // just to make it a positive value
         return result;
     }
+
+    public static void main(String [] args){
+        System.out.println(HexString.hexify("10085".getBytes()));
+    }
 }

@@ -15,10 +15,14 @@ import org.slf4j.LoggerFactory;
 public class BizThread implements  Runnable{
 
     private Logger log = LoggerFactory.getLogger(BizThread.class);
+    private volatile  boolean started = true;
 
+    public void stop(){
+        started = false;
+    }
     @Override
     public void run() {
-        while(true) {
+        while(started) {
             try {
                 log.info("staart biz:");
                 TLV tlv = MsgFactory.takeBiz();
