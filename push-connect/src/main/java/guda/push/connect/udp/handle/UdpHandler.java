@@ -41,9 +41,10 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             log.info("udp recvive:" + tlv.toString());
         }
         long userId = CodecUtil.findTagLong(tlv, Field.FROM_USER);
-        OnlineInfo.online(userId,sender.getHostName(),10085);
+        int fromPort = CodecUtil.findTagInt(tlv, Field.FROM_PORT);
+        OnlineInfo.online(userId,sender.getHostName(),fromPort);
         tlv.add(new TLV(Field.FROM_HOST, TypeConvert.string2byte(sender.getHostName())));
-        tlv.add(new TLV(Field.FROM_PORT, TypeConvert.int2byte(10085)));
+        tlv.add(new TLV(Field.FROM_PORT, TypeConvert.int2byte(fromPort)));
         MsgFactory.addBiz(tlv);
         int cmd = CodecUtil.findTagInt(tlv,Field.CMD);
         if(cmd!= Command.ACK && cmd!=Command.HEARBEAT) {

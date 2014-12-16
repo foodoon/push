@@ -41,7 +41,7 @@ public class UdpRouterThread implements Runnable {
                 sendSocket.close();
                 long seq = CodecUtil.findTagLong(tlv, Field.SEQ);
                 if(log.isDebugEnabled()){
-                    log.debug("add wait ack seq:" + seq + ",d:"+ tlv);
+                    log.debug("send packet to host:" + host + ",port" + port + ",add wait ack seq:" + seq + ",d:"+ tlv);
                 }
                 WaitAckFactory.add(seq, tlv);
             } catch (Exception e) {

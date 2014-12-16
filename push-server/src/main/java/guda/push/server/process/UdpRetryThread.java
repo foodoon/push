@@ -33,6 +33,9 @@ public class UdpRetryThread implements Runnable{
     @Override
     public void run() {
         while(started) {
+            if(log.isDebugEnabled()){
+                log.debug("start retry:");
+            }
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
@@ -41,11 +44,7 @@ public class UdpRetryThread implements Runnable{
             try {
                 AckTLV ackTLV = WaitAckFactory.poll();
                 if (ackTLV == null) {
-                    try {
-                        Thread.sleep(1 * 1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    return;
                 }
                 //reset online info
                 if(!ackTLV.needRetry()){
