@@ -3,6 +3,30 @@ package guda.push.connect.protocol.codec.tlv;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
+ * TAG:
+ *  |B7|B6|B5|B4|B3|B2|B1|B0
+ *  |0 |0 |  |  |  |  |  |  | 基本类型(primitive)
+ *  |0 |1 |  |  |  |  |  |  | 自定义类型(private)
+ *  |  |  |0 |  |  |  |  |  | 基本类型(primitive)
+ *  |  |  |1 |  |  |  |  |  | 复杂结构类型(construct)
+ *  |  |  |  |1 |1 |1 |1 |1 | tag value > 30 将扩展后面字节来描述tag ,否则使用0-4位来描述tag
+
+ 第6~7位：表示TLV的类型，00表示TLV描述的是基本数据类型(Primitive Frame, int,string,long…)，01表示用户自定义类型(Private Frame，常用于描述协议中的消息)。
+ 第5位：表示Value的编码方式，分别支持Primitive及Constructed两种编码方式, Primitive指以原始数据类型进行编码，Constructed指以TLV方式进行编码，0表示以Primitive方式编码，1表示以Constructed方式编码。
+ 第0~4位：当Tag Value小于0x1F(31)时，首字节0～4位用来描述Tag Value，否则0~4位全部置1，作为存在后续字节的标志，Tag Value将采用后续字节进行描述。
+ 后续字节采用每个字节的0～6位（即7bit）来存储Tag Value, 第7位用来标识是否还有后续字节。
+ Length 描述Value的长度
+   描述Value部分所占字节的个数，编码格式分两类：定长方式（DefiniteForm）和不定长方式（IndefiniteForm），其中定长方式又包括短形式与长形式。
+ 1) 定长方式
+    定长方式中，按长度是否超过一个八位，又分为短、长两种形式，编码方式如下：
+    短形式：
+       字节第7位为0，表示Length使用1个字节即可满足Value类型长度的描述，范围在0~127之间的。
+    长形式：
+       即Value类型的长度大于127时，Length需要多个字节来描述，这时第一个字节的第7位置为1，0~6位用来描述Length值占用的字节数，然后直将Length值转为byte后附在其后，如： Value大小占234个字节（11101010）,由于大于127，这时Length需要使用两个字节来描述，10000001 11101010
+ 2) 不定长方式
+    Length所在八位组固定编码为0x80，但在Value编码结束后以两个0x00结尾。这种方式使得可以在编码没有完全结束的情况下，可以先发送部分数据给对方。
+
+ *
  * Created by foodoon on 2014/12/12.
  */
 public class TLV {
@@ -148,12 +172,8 @@ public class TLV {
         int i = 0;
         int oldOffset = offset[0];
         TLV iterTLV = null;
-
         tlv.tag.fromBinary(binary, offset);
-
         tlv.length = 0;
-
-
         if ((binary[offset[0]] & (byte) 0x80) == (byte) 0x00) {
             tlv.length += (int) binary[offset[0]];
         } else {
@@ -184,7 +204,7 @@ public class TLV {
             tlv.lastChild = iterTLV;
         } else {
             tlv.child = null;
-            tlv.sibling = null;            // The new TLV has no sibling.
+            tlv.sibling = null;
             tlv.value = new byte[tlv.length];
             System.arraycopy(binary, offset[0], tlv.value, 0, tlv.length);
             offset[0] += tlv.length;
