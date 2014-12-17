@@ -4,32 +4,31 @@ package guda.push.connect.protocol.codec.tlv;
  * Created by foodoon on 2014/12/12.
  */
 public class Tag {
-    /** tag number */
-    private int     tag;
-    /** tag class, 0 - 4 */
-    private byte    tagclass;
-    /** constructed flag */
+    private final byte classes[] = {(byte) 0x00, (byte) 0x40, (byte) 0x80, (byte) 0xC0};
+
+    private int tag;
+
+    private byte tagclass;
+
     private boolean constructed;
 
-    /** Create a null tag.<p>
-     */
     public Tag() {
-        tag         = 0;
-        tagclass    = 0;
+        tag = 0;
+        tagclass = 0;
         constructed = false;
     }
 
 
     public Tag(Tag t) {
-        this.tag         = t.tag;
-        this.tagclass    = t.tagclass;
+        this.tag = t.tag;
+        this.tagclass = t.tagclass;
         this.constructed = t.constructed;
     }
 
 
     public Tag(int tag, byte tagClass, boolean constructed) {
-        this.tag         = tag;
-        this.tagclass    = tagClass;
+        this.tag = tag;
+        this.tagclass = tagClass;
         this.constructed = constructed;
     }
 
@@ -46,10 +45,10 @@ public class Tag {
 
 
     public int size() {
-        if      (tag < 0x1F)       return 1;
-        else if (tag < 0x80)       return 2;
-        else if (tag < 0x4000)     return 3;
-        else if (tag < 0x200000)   return 4;
+        if (tag < 0x1F) return 1;
+        else if (tag < 0x80) return 2;
+        else if (tag < 0x4000) return 3;
+        else if (tag < 0x200000) return 4;
         return 5;
     }
 
@@ -59,11 +58,11 @@ public class Tag {
         tagclass = (byte) ((binary[offset[0]] & 0xC0) >>> 6);
 
         // Get constructed flag (encoded in bit 5 of first byte)
-        if ((binary[offset[0]] & (byte) 0x20) == (byte) 0x20)
+        if ((binary[offset[0]] & (byte) 0x20) == (byte) 0x20) {
             constructed = true;           // This is a constructed TLV
-        else
+        }else {
             constructed = false;          // This is a primitive TLV
-
+        }
         // Get tag number (encoded in bits 4-0 of first byte and optionally
         // several following bytes.
         tag = 0;
@@ -80,13 +79,8 @@ public class Tag {
         offset[0]++;
     }
 
-    /**
-     * Gets a byte array representing the tag.
-     *
-     * @return the tag as a byte array
-     */
-    public byte[] getBytes()
-    {
+
+    public byte[] getBytes() {
         int[] offset = new int[1];
         offset[0] = 0;
         byte[] result = new byte[size()];
@@ -96,20 +90,18 @@ public class Tag {
 
 
     public void toBinary(byte[] binary, int[] offset) {
-        byte classes[] = {(byte)0x00, (byte)0x40, (byte)0x80, (byte)0xC0};
         int count = 0;
-
-        binary[offset[0]] |= classes[tagclass];  // encode class
-        if (constructed)                   // encode constructed bit
+        binary[offset[0]] |= classes[tagclass];
+        if (constructed) {
             binary[offset[0]] |= 0x20;
-
-        if (tag < 31)                      // encode tag number
+        }
+        if (tag < 31) {
             binary[offset[0]] |= (byte) tag;
-        else {
+        }else {
             binary[offset[0]] |= 0x1F;
-            for (count = this.size()-2; count > 0; count--) {
+            for (count = this.size() - 2; count > 0; count--) {
                 offset[0]++;
-                binary[offset[0]] = (byte) ( 0x80 | (( tag >> (count * 7)) & 0x7f));
+                binary[offset[0]] = (byte) (0x80 | ((tag >> (count * 7)) & 0x7f));
             }
             offset[0]++;
             binary[offset[0]] = (byte) (tag & 0x7f);
@@ -119,8 +111,8 @@ public class Tag {
 
 
     public void set(int tag, byte tagclass, boolean constructed) {
-        this.tag         = tag;
-        this.tagclass    = tagclass;
+        this.tag = tag;
+        this.tagclass = tagclass;
         this.constructed = constructed;
     }
 
@@ -141,13 +133,13 @@ public class Tag {
 
 
     public int hashCode() {
-        return tag+tagclass;
+        return tag + tagclass;
     }
 
 
     public boolean equals(Object o) {
-        return ((this.tag          == ((Tag) o).tag) &&
-                (this.tagclass     == ((Tag) o).tagclass));
+        return ((this.tag == ((Tag) o).tag) &&
+                (this.tagclass == ((Tag) o).tagclass));
     }
 
 
