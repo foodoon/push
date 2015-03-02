@@ -58,12 +58,12 @@ public class UdpServer {
     }
 
 
-    public final void response(String info) throws IOException {
+    public final void response(TLV info) throws IOException {
         System.out.println("客户端地址 : " + packet.getAddress().getHostAddress()
                 + ",端口：" + packet.getPort());
         DatagramPacket dp = new DatagramPacket(buffer, buffer.length, packet
                 .getAddress(), packet.getPort());
-        dp.setData(info.getBytes());
+        dp.setData(info.toBinary());
         ds.send(dp);
     }
 
@@ -94,11 +94,12 @@ public class UdpServer {
 
     public static void main(String[] args) throws Exception {
         String serverHost = "127.0.0.1";
-        int serverPort = 3344;
+        int serverPort = 10085;
         UdpServer udpServerSocket = new UdpServer(serverHost, serverPort);
         while (true) {
-            udpServerSocket.receive();
-
+            TLV receive = udpServerSocket.receive();
+            udpServerSocket.response(receive);
+            Thread.sleep(1*1000);
 
         }
     }
