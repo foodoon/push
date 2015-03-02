@@ -37,32 +37,39 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
         content.readBytes(d);
 
         TLV tlv = new TLV(d);
-        if (log.isInfoEnabled()) {
-            log.info("udp recvive:" + tlv.toString());
-        }
+
 
         long userId = CodecUtil.findTagLong(tlv, Field.FROM_USER);
-        int fromPort = CodecUtil.findTagInt(tlv, Field.FROM_PORT);
-        OnlineInfo.online(userId,sender.getHostName(),fromPort);
+        int fromPort = sender.getPort();
+        if (log.isInfoEnabled()) {
+            log.info("udp recvive:" + tlv.toString()+"from ip:" + sender.getHostName()+",from port:"+ sender.getPort() + ",address:" + sender.getAddress());
+        }
+        TLV tag = CodecUtil.findTag(tlv, Field.FROM_PORT);
+        if(tag==null) {
+            tlv.add(new TLV(Field.FROM_PORT, TypeConvert.int2byte(fromPort)));
+        }else{
+            tag.setValue(TypeConvert.int2byte(fromPort));
+        }
+        OnlineInfo.online(userId,sender.getHostName(),sender.getPort());
         tlv.add(new TLV(Field.FROM_HOST, TypeConvert.string2byte(sender.getHostName())));
 
         MsgFactory.addBiz(tlv);
         int cmd = CodecUtil.findTagInt(tlv,Field.CMD);
         if(cmd!= Command.ACK && cmd!=Command.HEARBEAT) {
-            ack(CodecUtil.newACK(tlv));
+            ack(CodecUtil.newACK(tlv), fromPort);
         }
 
     }
 
-    private void ack(TLV tlv) {
+    private void ack(TLV tlv,int fromPort) {
         try {
             DatagramSocket sendSocket = new DatagramSocket();
             byte[] bytes = tlv.toBinary();
             String host = CodecUtil.findTagString(tlv, Field.TO_HOST);
             InetAddress inetAddress = InetAddress.getByName(host);
-            int port = CodecUtil.findTagInt(tlv, Field.TO_PORT);
+            //int port = CodecUtil.findTagInt(tlv, Field.TO_PORT);
             java.net.DatagramPacket sendPacket = new java.net.DatagramPacket(bytes, bytes.length, inetAddress,
-                    port);
+                    fromPort);
             sendSocket.send(sendPacket);
             sendSocket.close();
         } catch (Exception e) {
