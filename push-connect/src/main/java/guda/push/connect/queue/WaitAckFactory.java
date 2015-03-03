@@ -34,6 +34,7 @@ public class WaitAckFactory {
         if(tlv == null){
             return ;
         }
+        waitMap.remove(seq);
         waitList.remove(tlv);
     }
 

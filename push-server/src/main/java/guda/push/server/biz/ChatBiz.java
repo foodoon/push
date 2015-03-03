@@ -26,6 +26,7 @@ public class ChatBiz implements Biz {
             return ;
         }
         TLV tlv = CodecUtil.newTlv(Struct.CHAT);
+        tlv.add(new TLV(Field.CMD, TypeConvert.int2byte(Command.CHAT)));
         String content = CodecUtil.findTagString(request, Field.CHAT_CONTENT);
         long fromUser = CodecUtil.findTagLong(request, Field.FROM_USER);
         long toUser = CodecUtil.findTagLong(request, Field.TO_USER);

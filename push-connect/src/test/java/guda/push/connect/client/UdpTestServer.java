@@ -71,6 +71,8 @@ public class UdpTestServer implements Runnable {
 
                     int cmd = CodecUtil.findTagInt(rece,Field.CMD);
                     System.out.println("recv::cmd:" + cmd + ",host:" + datagramPacket.getAddress().getHostAddress()+ rece);
+                    rece.add(new TLV(Field.FROM_HOST, TypeConvert.string2byte(datagramPacket.getAddress().getHostName())));
+                    rece.add(new TLV(Field.FROM_PORT, TypeConvert.int2byte(datagramPacket.getPort())));
                     if(cmd!= Command.ACK && cmd!=Command.HEARBEAT) {
                         ack(datagramSocket,CodecUtil.newACK(rece), serverPort);
                     }
