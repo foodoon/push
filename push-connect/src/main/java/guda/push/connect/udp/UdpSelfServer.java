@@ -44,14 +44,19 @@ public class UdpSelfServer implements Runnable{
 
     public UdpSelfServer(int port) {
         this.port = port;
+        try {
+            serverDatagramSocket = new DatagramSocket(10085);
+
+            logger.info("1. 服务端启动成功！ 服务端口：" + 10085);
+
+        }catch(Exception e){
+            logger.error("",e);
+        }
     }
 
     @Override
     public void run() {
         try {
-            serverDatagramSocket = new DatagramSocket(10085);
-
-            logger.info("1. 服务端启动成功！ 服务端口：" + 10085);
             byte[] buf = new byte[1024];
             DatagramPacket packet = new DatagramPacket(buf, buf.length);
             while(true) {
