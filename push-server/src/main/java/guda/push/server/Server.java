@@ -16,16 +16,18 @@ import java.util.concurrent.Executors;
 public class Server {
 
     public static void main(String[] args) {
+
+        UdpSelfServer udpSelfServer = new UdpSelfServer(10085);
         Thread bizThread = new Thread(new BizThread());
         bizThread.setDaemon(true);
         bizThread.start();
 
-        new UdpRetryThread();
+        new UdpRetryThread(udpSelfServer.getServerDatagramSocket());
 
-        Thread udpRouterThread = new Thread(new UdpRouterThread());
+        Thread udpRouterThread = new Thread(new UdpRouterThread(udpSelfServer.getServerDatagramSocket()));
         udpRouterThread.setDaemon(true);
         udpRouterThread.start();
-        Thread t = new Thread( new UdpSelfServer(10085));
+        Thread t = new Thread(udpSelfServer );
         //t.setDaemon(true);
         t.start();
 

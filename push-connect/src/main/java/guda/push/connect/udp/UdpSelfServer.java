@@ -21,9 +21,9 @@ public class UdpSelfServer implements Runnable{
 
     private static org.slf4j.Logger logger = LoggerFactory.getLogger(UdpSelfServer.class);
 
+    private DatagramSocket serverDatagramSocket;
 
-
-    private static void ack(DatagramSocket serverDatagramSocket ,TLV tlv,int fromPort) {
+    private  void ack(TLV tlv,int fromPort) {
         try {
 
             byte[] bytes = tlv.toBinary();
@@ -49,7 +49,7 @@ public class UdpSelfServer implements Runnable{
     @Override
     public void run() {
         try {
-            DatagramSocket serverDatagramSocket = new DatagramSocket(10085);
+            serverDatagramSocket = new DatagramSocket(10085);
 
             logger.info("1. 服务端启动成功！ 服务端口：" + 10085);
             byte[] buf = new byte[1024];
@@ -80,12 +80,16 @@ public class UdpSelfServer implements Runnable{
                 int cmd = CodecUtil.findTagInt(tlv,Field.CMD);
 
                 if(cmd!= Command.ACK && cmd!=Command.HEARBEAT) {
-                    ack( serverDatagramSocket,CodecUtil.newACK(tlv), fromPort);
+                    ack(CodecUtil.newACK(tlv), fromPort);
                 }
             }
         } catch (Exception e) {
             logger.error("",e);
         }
 
+    }
+
+    public DatagramSocket getServerDatagramSocket() {
+        return serverDatagramSocket;
     }
 }

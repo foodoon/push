@@ -14,8 +14,8 @@ public class ClientTest {
 
     public static void main(String[] args) throws Exception {
         //192.168.207.104
-        UdpServer udpServer = new UdpServer("192.168.207.104",10085,1L,10086);
-        Thread server = new Thread(udpServer);
+        UdpTestServer udpTestServer = new UdpTestServer("ums365.com",10085,1L,10086);
+        Thread server = new Thread(udpTestServer);
         server.start();
 
         while(true){
@@ -31,7 +31,7 @@ public class ClientTest {
                 tlv.add(new TLV(Field.FROM_PORT, TypeConvert.long2byte(10086)));
                 tlv.add(new TLV(Field.TO_USER, TypeConvert.long2byte(1)));
                 tlv.add(new TLV(Field.CHAT_CONTENT, TypeConvert.long2byte(2222)));
-                udpServer.send(tlv);
+                udpTestServer.send(tlv);
             }catch(Exception e){
                 e.printStackTrace();
             }

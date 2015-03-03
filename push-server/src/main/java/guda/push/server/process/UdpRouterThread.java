@@ -21,6 +21,11 @@ public class UdpRouterThread implements Runnable {
     private Logger log = LoggerFactory.getLogger(UdpRouterThread.class);
 
     private volatile  boolean started = true;
+    private DatagramSocket serverDatagramSocket;
+
+    public UdpRouterThread(DatagramSocket ds){
+        serverDatagramSocket = ds;
+    }
 
     public void stop(){
         started = false;
@@ -30,15 +35,15 @@ public class UdpRouterThread implements Runnable {
         while(started) {
             try {
                 TLV tlv = MsgFactory.takeUdpRoute();
-                DatagramSocket sendSocket = new DatagramSocket();
+
                 byte[] bytes = tlv.toBinary();
                 String host = CodecUtil.findTagString(tlv, Field.TO_HOST);
                 InetAddress inetAddress = InetAddress.getByName(host);
                 int port = CodecUtil.findTagInt(tlv, Field.TO_PORT);
                 DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, inetAddress,
                         port);
-                sendSocket.send(sendPacket);
-                sendSocket.close();
+                serverDatagramSocket.send(sendPacket);
+
                 long seq = CodecUtil.findTagLong(tlv, Field.SEQ);
                 if(log.isDebugEnabled()){
                     log.debug("send packet to host:" + host + ",port" + port + ",add wait ack seq:" + seq + ",d:"+ tlv);

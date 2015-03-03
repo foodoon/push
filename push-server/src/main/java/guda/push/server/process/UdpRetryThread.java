@@ -22,7 +22,10 @@ public class UdpRetryThread implements Runnable{
     private Logger log = LoggerFactory.getLogger(UdpRetryThread.class);
     private volatile  boolean started = true;
 
-    public UdpRetryThread(){
+    private DatagramSocket serverDatagramSocket;
+
+    public UdpRetryThread(DatagramSocket ds){
+        serverDatagramSocket = ds;
         Thread udpRetryThread = new Thread(this);
         udpRetryThread.setDaemon(true);
         udpRetryThread.start();
@@ -68,14 +71,13 @@ public class UdpRetryThread implements Runnable{
                 tagHost.setValue(TypeConvert.string2byte(onlineInfo.getHost()));
                 tagPort.setValue(TypeConvert.int2byte(onlineInfo.getPort()));
                 //
-                DatagramSocket sendSocket = new DatagramSocket();
+
                 byte[] bytes = ackTLV.getTlv().toBinary();
 
                 InetAddress inetAddress = InetAddress.getByName(onlineInfo.getHost());
                 DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, inetAddress,
                         onlineInfo.getPort());
-                sendSocket.send(sendPacket);
-                sendSocket.close();
+                serverDatagramSocket.send(sendPacket);
                 long seq = CodecUtil.findTagLong(ackTLV.getTlv(),Field.SEQ);
                 WaitAckFactory.add(seq,ackTLV.getTlv());
             } catch (Exception e) {

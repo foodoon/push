@@ -13,7 +13,7 @@ import java.net.*;
 /**
  * Created by foodoon on 2014/12/15.
  */
-public class UdpServer implements Runnable {
+public class UdpTestServer implements Runnable {
 
     public volatile boolean started = true;
     InetAddress mInetAddress;
@@ -26,7 +26,7 @@ public class UdpServer implements Runnable {
     DatagramSocket datagramSocket = null;
 
 
-    public UdpServer(String server_host,int server_port,long user_id,int localPort) {
+    public UdpTestServer(String server_host, int server_port, long user_id, int localPort) {
         this.serverPort = server_port;
         this.serverHost = server_host;
         this.userId = user_id;
@@ -68,7 +68,14 @@ public class UdpServer implements Runnable {
                     datagramSocket.receive(datagramPacket);
                     TLV rece = new TLV(datagramPacket.getData());
 
-                    System.out.println("recv::" + rece);
+
+                    int cmd = CodecUtil.findTagInt(rece,Field.CMD);
+                    System.out.println("recv::cmd:" + cmd + ",host:" + datagramPacket.getAddress().getHostAddress()+ rece);
+                    if(cmd!= Command.ACK && cmd!=Command.HEARBEAT) {
+                        ack(datagramSocket,CodecUtil.newACK(rece), serverPort);
+                    }
+
+                    Thread.sleep(300);
 
                 }
             } catch (Exception e) {
@@ -156,6 +163,24 @@ System.out.println("send packet:host:" + serverHost + ",port:" + serverPort);
 
 
             }
+        }
+    }
+
+    private static void ack(DatagramSocket serverDatagramSocket ,TLV tlv,int fromPort) {
+        try {
+
+            byte[] bytes = tlv.toBinary();
+            String host = CodecUtil.findTagString(tlv, Field.TO_HOST);
+            InetAddress inetAddress = InetAddress.getByName(host);
+            //int port = CodecUtil.findTagInt(tlv, Field.TO_PORT);
+            System.out.println("returen ack: target host:" + host + ",port:" + fromPort);
+            java.net.DatagramPacket sendPacket = new java.net.DatagramPacket(bytes, bytes.length, inetAddress,
+                    fromPort);
+            serverDatagramSocket.send(sendPacket);
+
+        } catch (Exception e) {
+            //logger.error("", e);
+            e.printStackTrace();
         }
     }
 
