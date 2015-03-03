@@ -1,6 +1,8 @@
 package guda.push.connect.queue;
 
 import guda.push.connect.protocol.codec.tlv.TLV;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -10,6 +12,7 @@ import java.util.concurrent.BlockingQueue;
  */
 public class MsgFactory {
 
+    private static Logger log = LoggerFactory.getLogger(MsgFactory.class);
     private static final int MAX_SIZE = 5000;
 
     static final BlockingQueue<TLV> bizQueue = new ArrayBlockingQueue<TLV>(
@@ -36,7 +39,9 @@ public class MsgFactory {
     }
 
     public static TLV takeBiz() throws InterruptedException {
-        System.out.println("queue size:" + bizQueue.size());
+        if(log.isDebugEnabled()) {
+            log.debug("queue size:" + bizQueue.size());
+        }
         return bizQueue.take();
     }
 
