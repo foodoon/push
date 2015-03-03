@@ -27,7 +27,7 @@ public class Server {
         Thread t = new Thread( new UdpServer(10085));
         //t.setDaemon(true);
         t.start();
-        
+
 
 
     }

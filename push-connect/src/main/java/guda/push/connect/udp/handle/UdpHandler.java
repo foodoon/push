@@ -68,6 +68,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
             String host = CodecUtil.findTagString(tlv, Field.TO_HOST);
             InetAddress inetAddress = InetAddress.getByName(host);
             //int port = CodecUtil.findTagInt(tlv, Field.TO_PORT);
+            log.info("returen ack: target host:" + host + ",port:" + fromPort);
             java.net.DatagramPacket sendPacket = new java.net.DatagramPacket(bytes, bytes.length, inetAddress,
                     fromPort);
             sendSocket.send(sendPacket);
