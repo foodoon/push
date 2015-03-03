@@ -20,6 +20,6 @@ public interface Field {
     public final static Tag TO_USER = new Tag(10, (byte) 2, false);
     public final static Tag CLIENT_HOST = new Tag(11, (byte) 2, false);
     public final static Tag SERVER_HOST = new Tag(12, (byte) 2, false);
-    public final static Tag CHAT_CONTENT = new Tag(100, (byte) 2, false);
+    public final static Tag CHAT_CONTENT = new Tag(98, (byte) 2, false);
     public final static Tag BODY = new Tag(99, (byte) 2, false);
 }

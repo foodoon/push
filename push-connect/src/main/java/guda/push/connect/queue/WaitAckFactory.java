@@ -22,12 +22,13 @@ public class WaitAckFactory {
     static final BlockingQueue<AckTLV> waitList = new ArrayBlockingQueue<AckTLV>(MAX_SIZE);
 
 
-    public static  void add(Long seq,TLV tlv){
+    public static  void add(Long seq,TLV tlv) {
+        log.info("wait ack size:" + waitList.size() + ",map:" + waitMap.size());
         AckTLV ackTLV = new AckTLV(tlv);
         waitList.add(ackTLV);
-        waitMap.put(seq,ackTLV);
-        log.info("wait ack size:" + waitList.size() + ",map:" + waitMap.size());
+        waitMap.put(seq, ackTLV);
     }
+
 
     public static  void remove(Long seq) {
         AckTLV tlv = waitMap.get(seq);
