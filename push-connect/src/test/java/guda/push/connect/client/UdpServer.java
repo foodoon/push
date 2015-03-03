@@ -48,6 +48,7 @@ public class UdpServer implements Runnable {
 
             while(datagramSocket == null){
                 try {
+                   // InetSocketAddress  socketAddress = new InetSocketAddress("192.168.207.104", localPort);
                     datagramSocket = new DatagramSocket(localPort);
                 }catch(Exception e){
                     e.printStackTrace();
@@ -63,6 +64,7 @@ public class UdpServer implements Runnable {
                 while (started) {
                     DatagramPacket datagramPacket = new DatagramPacket(message,
                             message.length);
+                    System.out.println(datagramSocket.getLocalSocketAddress().toString());
                     datagramSocket.receive(datagramPacket);
                     TLV rece = new TLV(datagramPacket.getData());
 
@@ -108,7 +110,7 @@ public class UdpServer implements Runnable {
         try {
 System.out.println("send packet:host:" + serverHost + ",port:" + serverPort);
             datagramSocket.send(p);
-            //datagramSocket.close();
+           // datagramSocket.disconnect();
 
 
 

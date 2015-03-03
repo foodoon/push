@@ -14,13 +14,13 @@ public class ClientTest {
 
     public static void main(String[] args) throws Exception {
         //192.168.207.104
-        UdpServer udpServer = new UdpServer("ums365.com",10085,1L,10086);
+        UdpServer udpServer = new UdpServer("192.168.207.104",10085,1L,10086);
         Thread server = new Thread(udpServer);
         server.start();
 
         while(true){
             try {
-                Thread.sleep(15 * 1000);
+                Thread.sleep(10 * 1000);
             } catch (Exception e) {
 
             }

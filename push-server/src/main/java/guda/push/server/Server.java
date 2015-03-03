@@ -1,5 +1,6 @@
 package guda.push.server;
 
+import guda.push.connect.udp.UdpSelfServer;
 import guda.push.connect.udp.UdpServer;
 import guda.push.server.process.BizThread;
 import guda.push.server.process.UdpRetryThread;
@@ -24,7 +25,7 @@ public class Server {
         Thread udpRouterThread = new Thread(new UdpRouterThread());
         udpRouterThread.setDaemon(true);
         udpRouterThread.start();
-        Thread t = new Thread( new UdpServer(10085));
+        Thread t = new Thread( new UdpSelfServer(10085));
         //t.setDaemon(true);
         t.start();
 

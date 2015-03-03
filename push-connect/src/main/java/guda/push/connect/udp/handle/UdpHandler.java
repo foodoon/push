@@ -55,6 +55,7 @@ public class UdpHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
         MsgFactory.addBiz(tlv);
         int cmd = CodecUtil.findTagInt(tlv,Field.CMD);
+
         if(cmd!= Command.ACK && cmd!=Command.HEARBEAT) {
             ack(CodecUtil.newACK(tlv), fromPort);
         }
