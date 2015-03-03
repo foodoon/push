@@ -18,18 +18,19 @@ public class UdpServer implements Runnable {
     public volatile boolean started = true;
     InetAddress mInetAddress;
     protected byte[] buffer = new byte[1024];
-    static int port = 10085;
+    static int localPort = 10086;
     protected static String serverHost;
     protected static int serverPort;
     protected static long userId;
     private Hearbeat hearbeat;
+    DatagramSocket datagramSocket = null;
 
 
-    public UdpServer(String server_host,int server_port,long user_id,int clientPort) {
+    public UdpServer(String server_host,int server_port,long user_id,int localPort) {
         this.serverPort = server_port;
         this.serverHost = server_host;
         this.userId = user_id;
-        this.port = clientPort;
+        this.localPort = localPort;
         hearbeat = new Hearbeat();
     }
 
@@ -44,22 +45,24 @@ public class UdpServer implements Runnable {
 
         byte[] message = new byte[100];
         try {
-            DatagramSocket datagramSocket = null;
+
             while(datagramSocket == null){
                 try {
-                    datagramSocket = new DatagramSocket(port);
+                    datagramSocket = new DatagramSocket(localPort);
                 }catch(Exception e){
-                    port++ ;
+                    e.printStackTrace();
+                    localPort++ ;
                    Thread.sleep(300);
                 }
             }
             datagramSocket.setBroadcast(true);
             datagramSocket.setReuseAddress(true);
-            DatagramPacket datagramPacket = new DatagramPacket(message,
-                    message.length);
+
+            System.out.println("start listen on " + localPort);
             try {
                 while (started) {
-
+                    DatagramPacket datagramPacket = new DatagramPacket(message,
+                            message.length);
                     datagramSocket.receive(datagramPacket);
                     TLV rece = new TLV(datagramPacket.getData());
 
@@ -75,24 +78,24 @@ public class UdpServer implements Runnable {
 
     }
 
-    public static void send(TLV tlv) {
+    public  void send(TLV tlv) {
         if(tlv == null){
             return;
         }
         TLV tag = CodecUtil.findTag(tlv, Field.FROM_PORT);
         if(tag == null){
-            tlv.add(new TLV(Field.FROM_PORT,port));
+            tlv.add(new TLV(Field.FROM_PORT, localPort));
         }else{
-            tag.setValue(TypeConvert.int2byte(port));
+            tag.setValue(TypeConvert.int2byte(localPort));
         }
         System.out.println("UDP发送数据:" + tlv);
 
-        DatagramSocket s = null;
-        try {
-            s = new DatagramSocket();
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
+//        DatagramSocket s = null;
+//        try {
+//            s = new DatagramSocket(serverPort);
+//        } catch (SocketException e) {
+//            e.printStackTrace();
+//        }
         InetAddress server = null;
         try {
             server = InetAddress.getByName(serverHost);
@@ -103,9 +106,11 @@ public class UdpServer implements Runnable {
         DatagramPacket p = new DatagramPacket(messageByte, messageByte.length, server,
                 serverPort);
         try {
+System.out.println("send packet:host:" + serverHost + ",port:" + serverPort);
+            datagramSocket.send(p);
+            //datagramSocket.close();
 
-            s.send(p);
-            s.close();
+
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -133,19 +138,20 @@ public class UdpServer implements Runnable {
         public void run() {
             while(started) {
                 try {
-                    TLV tlv = CodecUtil.newTlv(Struct.HEARBEAT);
-                    tlv.add(new TLV(Field.CMD, TypeConvert.int2byte(Command.HEARBEAT)));
-                    tlv.add(new TLV(Field.FROM_USER, TypeConvert.long2byte(userId)));
-                    tlv.add(new TLV(Field.FROM_PORT, TypeConvert.long2byte(port)));
-                    send(tlv);
-                }catch(Exception e){
-
-                }
-                try {
-                    Thread.sleep(60 * 1000 * 3);
+                    Thread.sleep(30 * 1000);
                 } catch (Exception e) {
 
                 }
+                try {
+                    TLV tlv = CodecUtil.newTlv(Struct.HEARBEAT);
+                    tlv.add(new TLV(Field.CMD, TypeConvert.int2byte(Command.HEARBEAT)));
+                    tlv.add(new TLV(Field.FROM_USER, TypeConvert.long2byte(userId)));
+                    tlv.add(new TLV(Field.FROM_PORT, TypeConvert.long2byte(localPort)));
+                    send(tlv);
+                }catch(Exception e){
+                    e.printStackTrace();
+                }
+
 
             }
         }

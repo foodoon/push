@@ -9,6 +9,7 @@
   </parent>
   <groupId>guda.push.connect</groupId>
   <artifactId>push-connect</artifactId>
+    <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
   <name>push-connect</name>
   <url>http://maven.apache.org</url>

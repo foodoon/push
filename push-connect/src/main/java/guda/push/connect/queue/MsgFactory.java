@@ -36,6 +36,7 @@ public class MsgFactory {
     }
 
     public static TLV takeBiz() throws InterruptedException {
+        System.out.println("queue size:" + bizQueue.size());
         return bizQueue.take();
     }
 

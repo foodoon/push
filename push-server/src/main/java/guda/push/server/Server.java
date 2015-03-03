@@ -25,14 +25,9 @@ public class Server {
         udpRouterThread.setDaemon(true);
         udpRouterThread.start();
         Thread t = new Thread( new UdpServer(10085));
-        t.setDaemon(true);
+        //t.setDaemon(true);
         t.start();
-
-        try {
-            Thread.sleep(3*1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        
 
 
     }
